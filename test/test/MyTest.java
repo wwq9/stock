@@ -89,7 +89,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 public class MyTest {
 	@Test
 	public void test8(){
-		
 		final WebClient webClient = new WebClient(BrowserVersion.CHROME);//新建一个模拟谷歌Chrome浏览器的浏览器客户端对象
 		webClient.getOptions().setRedirectEnabled(true);
 		webClient.getOptions().setDownloadImages(false);
