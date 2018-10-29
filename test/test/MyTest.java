@@ -383,10 +383,10 @@ public class MyTest {
 	 */
 	@Test
 	public void test4() throws Exception{
-		Document doc = Jsoup.connect("http://hdfgj.bjhd.gov.cn/xxgk/xxgs/zdly/zbgs/")
+		Document doc = Jsoup.connect("http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/")
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 				.get();
-		Element ul = doc.selectFirst("ul.list");
+		Element ul = doc.selectFirst("ul.textList");
 		Element span = ul.selectFirst("span");
 		String date = span.html().replaceAll("[\\[ \\]]", "");
 		System.out.println(ul.html());

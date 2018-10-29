@@ -380,16 +380,16 @@ public class SimpleMailSender implements ServletContextListener {
 
 		try {
 			Document doc = Jsoup
-					.connect("http://hdfgj.bjhd.gov.cn/xxgk/xxgs/zdly/zbgs/")
+					.connect("http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/")
 					.userAgent(
 							"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 					.get();
-			Element ul = doc.selectFirst("ul.list");
+			Element ul = doc.selectFirst("ul.textList");
 			Element span = ul.selectFirst("span");
 			String date = span.html().replaceAll("[\\[ \\]]", "");
 			Elements hdas = ul.getElementsByTag("a");
 			for (Element a : hdas) {
-				a.attr("href", "http://hdfgj.bjhd.gov.cn/xxgk/xxgs/zdly/zbgs/"+a.attr("href"));
+				a.attr("href", "http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/"+a.attr("href"));
 			}
 			
 			Document fengtaiDoc = Jsoup.connect("http://fgj.bjft.gov.cn/index.php?s=/Index/newslist/cid/78.html")
