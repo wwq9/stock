@@ -377,7 +377,23 @@ public class SimpleMailSender implements ServletContextListener {
 			if (conn != null)
 				conn.disconnect();
 		}
-
+		
+		File f=null;
+		Properties p= null;
+		try {
+			f = new File("/data/sk/gonggao.properties");
+			if (!f.exists()) {
+				f.getParentFile().mkdirs();
+				f.createNewFile();
+			}
+			p = new Properties();
+			FileReader reader = new FileReader(f);
+			p.load(reader);
+			reader.close();
+		} catch (Exception e) {}
+		String lastdate = p.getProperty("lastDate");
+		String ftlastdate = p.getProperty("ftlastDate");
+		
 		try {
 			Document doc = Jsoup
 					.connect("http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/")
@@ -391,42 +407,41 @@ public class SimpleMailSender implements ServletContextListener {
 			for (Element a : hdas) {
 				a.attr("href", "http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/"+a.attr("href"));
 			}
-			
-			Document fengtaiDoc = Jsoup.connect("http://fgj.bjft.gov.cn/index.php?s=/Index/newslist/cid/78.html")
-					.userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
-					.get();
-			Element div = fengtaiDoc.selectFirst("div.type_l_list");
-			String ftdate = div.selectFirst("span").ownText();
-			Elements as = div.getElementsByTag("a");
-			for (Element a : as) {
-				a.attr("href", "http://fgj.bjft.gov.cn"+a.attr("href"));
-			}
-			
-			File f = new File("/data/sk/gonggao.properties");
-			if (!f.exists()) {
-				f.getParentFile().mkdirs();
-				f.createNewFile();
-			}
-			Properties p = new Properties();
-			FileReader reader = new FileReader(f);
-			p.load(reader);
-			reader.close();
-			String lastdate = p.getProperty("lastDate");
-			String ftlastdate = p.getProperty("ftlastDate");
 			if (!date.equals(lastdate)) {
 				p.setProperty("lastDate", date);
 				sendHtmlMail("海淀共有产权公告", ul.html(),to1);
 			}
+		} catch (Exception e) {
+			sendHtmlMail("海淀共有产权公告连接超时", "",to1);
+		}
+		try{
+			Document fengtaiDoc = Jsoup.connect("http://www.bjft.gov.cn/XXGK/BZXZFGS/list.xml")
+					.userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
+					.get();
+			String ftdate = fengtaiDoc.selectFirst("pubtime").ownText();
+			Elements titles = fengtaiDoc.select("title");
+			Elements ids = fengtaiDoc.select("id");
+			StringBuilder sb = new StringBuilder("<ul>");
+			for (int i=0;i<titles.size();i++) {
+				String title = titles.get(i).ownText();
+				String id = ids.get(i).ownText();
+				sb.append("<li><a href='http://www.bjft.gov.cn/n_shownews.html?"+id+"?/XXGK/BZXZFGS/'>"+title+"</a></li>");
+			}
+			sb.append("</ul>");
 			if (!ftdate.equals(ftlastdate)) {
 				p.setProperty("ftlastDate", ftdate);
-				sendHtmlMail("丰台共有产权公告", div.html(),to1);
+				sendHtmlMail("丰台共有产权公告", sb.toString(),to1);
 			}
+		} catch (Exception e) {
+			sendHtmlMail("丰台共有产权公告连接超时", "",to1);
+		}
+			
+		try {
 			FileWriter writer = new FileWriter(f);
 			p.store(writer, "");
 			writer.close();
-		} catch (Exception e) {
-			sendHtmlMail("共有产权公告连接超时", "",to1);
-		}
+		} catch (Exception e) {}
+		
 	}
 	public static  void Own(){
 		List<String[]> userList = new ArrayList();
