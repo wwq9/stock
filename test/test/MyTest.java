@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TimeZone;
 
 import org.jsoup.Connection.Method;
 import org.jsoup.Jsoup;
@@ -37,6 +39,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class MyTest {
+	
 	@Test
 	public void test8(){
 		final WebClient webClient = new WebClient(BrowserVersion.CHROME);//新建一个模拟谷歌Chrome浏览器的浏览器客户端对象
@@ -242,8 +245,8 @@ public class MyTest {
 //		reader.close();
 		
 		//打开cookie管理
-				CookieManager manager = new CookieManager();
-				CookieHandler.setDefault(manager);
+//				CookieManager manager = new CookieManager();
+//				CookieHandler.setDefault(manager);
 		
 //		String json = Jsoup.connect("https://wechat.benmu-health.com/mobile/wx/conf/getWxConf?url=https:%2F%2Fwechat.benmu-health.com%2FwechatV2%2F")
 //				.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044208 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
@@ -255,29 +258,60 @@ public class MyTest {
 //				.ignoreContentType(true)
 //				.execute().body();
 		
-		String json = Jsoup.connect("https://wechat.benmu-health.com/mobile/wx/user/account?_=1537415573823")
-				.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044208 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
-				.cookie("__jsluid", "4e9fcf17604679b850400eb9d8eaaea1")
-				.cookie("_attention", "1")
-				.cookie("_ucp", "tesPZrlymQccF9U4HUbUTznCF4VQ7Ao9Ck74bPvfKQJaS-z0s_AoHeAHAIOqBpL3zxD-8Q..")
-				.cookie("bm_session_tm", "1537415285489")
-				.cookie("bm_session", "WVyqZXI7HwzQndOVPRuiEKjrD93lF75l_5124717")
-				.ignoreContentType(true)
-				.execute().body();
-		
-		System.out.println(json);
+		Document fengtaiDoc = Jsoup.connect("http://www.bjft.gov.cn/XXGK/BZXZFGS/list.xml")
+				.userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
+				.get();
+		String ftdate = fengtaiDoc.selectFirst("pubtime").ownText();
+		Elements titles = fengtaiDoc.select("title");
+		Elements ids = fengtaiDoc.select("id");
+		StringBuilder sb = new StringBuilder("<ul>");
+		for (int i=0;i<titles.size();i++) {
+			String title = titles.get(i).ownText();
+			String id = ids.get(i).ownText();
+			sb.append("<li><a href='http://www.bjft.gov.cn/n_shownews.html?"+id+"?/XXGK/BZXZFGS/'>"+title+"</a></li>");
+		}
+		sb.append("</ul>");
+		SimpleMailSender.sendHtmlMail("", sb.toString(), "84529527@qq.com");
 	}
 	@Test
 	public void test6() throws Exception{
-		String s = "<div class=\"spacing\"></div><center><img src=\"http://zzfws.bjjs.gov.cn:80/enroll/resources/enroll/CSS/images/img_dailog_enrollnone.jpg\"/></center><hr>";
-		String re = s;
-		Element date = Jsoup.parse(null)
-				.select("th:contains(开始时间)")
-				.next()
-				.first();
-		String d = date.html();
-		SimpleMailSender.gycq();
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+		CookieManager manager = new CookieManager();
+		CookieHandler.setDefault(manager);
+		String rili = Jsoup.connect("http://gzhd.saic.gov.cn:8281/dwr/call/plaincall/login_Manager.sendMakeCertPic.dwr")
+				.data("c0-scriptName", "login_Manager")
+				.data("c0-methodName","sendMakeCertPic")
+				.data("c0-param0","string:18600369418")
+				.data("scriptSessionId","")
+				.data("httpSessionId", "")
+				.data("batchId","7")
+				.data("page","%2Fregister.html")
+				.data("c0-id","0")
+				.data("windowName","")
+				.data("callCount","1")
+				.post()
+				.html();
 		
+//		String rili = Jsoup.connect("https://bch.huaaiangel.com/bchwx/index.php")
+//				.data("phone", "18141911861")
+//				.data("r","site%2Fget-token")
+//				.data("_csrf","amxxeUlJal8ZNiUuET8rakciRDorfTkNPgBDNiQEPSlaGwUmHAclCA==")
+//				.post()
+//				.html();
+		
+//		final WebClient webClient = new WebClient(BrowserVersion.CHROME);//新建一个模拟谷歌Chrome浏览器的浏览器客户端对象
+//		webClient.getOptions().setRedirectEnabled(true);
+//		webClient.getOptions().setDownloadImages(false);
+//		webClient.getOptions().setThrowExceptionOnScriptError(false);//当JS执行出错的时候是否抛出异常, 这里选择不需要
+//		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);//当HTTP的状态非200时是否抛出异常, 这里选择不需要
+//		webClient.getOptions().setActiveXNative(false);
+//		webClient.getOptions().setCssEnabled(false);//是否启用CSS, 因为不需要展现页面, 所以不需要启用
+//		webClient.getOptions().setJavaScriptEnabled(true); //很重要，启用JS
+//		webClient.setAjaxController(new NicelyResynchronizingAjaxController());//很重要，设置支持AJAX
+//		HtmlPage page = webClient.getPage("http://gzhd.saic.gov.cn:8281/register.html");
+//		//webClient.waitForBackgroundJavaScript(50000);
+//		rili = page.getElementById("dateRest").asText()+page.getElementById("dateWork").asText();
+		System.out.println(rili);
 	}
 	@Test
 	public void test5() throws Exception{
