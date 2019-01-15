@@ -598,7 +598,7 @@ public class SimpleMailSender implements ServletContextListener {
 				sendHtmlMail("登录失败"+p1, loginRes,to2);
 			}
 		} catch (Exception e) {
-			sendHtmlMail("ThankFund连接超时", "",to1);
+			sendHtmlMail("ThankFund连接超时"+p1, "",to1);
 		}
 		return myAccountDoc;
 	}
