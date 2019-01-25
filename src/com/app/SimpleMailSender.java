@@ -399,7 +399,7 @@ public class SimpleMailSender implements ServletContextListener {
 					.connect("http://www.bjhd.gov.cn/xxgk/auto4522_51806/index_bm.shtml")
 					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 					.get();
-			String date = doc.selectFirst("td[class=rq] span").ownText();
+			String date = doc.select("td span").get(1).ownText();
 			Elements hdas = doc.select("td[class=mc]");
 			StringBuilder sb = new StringBuilder("<ul>");
 			for (Element a : hdas) {
