@@ -64,8 +64,8 @@ public class SimpleMailSender implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-		runOwn();
-		runKehu();
+//		runOwn();
+//		runKehu();
 		runYjyg();
 		runGycq();
 	}
