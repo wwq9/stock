@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.OutputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -21,6 +22,8 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +59,7 @@ public class SimpleMailSender implements ServletContextListener {
 	static Timer timer = new Timer();
 	static Pattern cn = Pattern.compile("\\d{4}-\\d{2}-\\d{2} (\\d{6}) ");// 匹配年月日后面的code
 	static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
@@ -66,8 +70,8 @@ public class SimpleMailSender implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent arg0) {
 //		runOwn();
 //		runKehu();
-		runYjyg();
-		runGycq();
+//		runYjyg();
+//		runGycq();
 	}
 	
 	private void runKehu() {
@@ -83,6 +87,7 @@ public class SimpleMailSender implements ServletContextListener {
 				}
 			}
 		};
+		
 		timer.scheduleAtFixedRate(quarter, c.getTime(), 24*60*60*1000);
 	}
 	private void runOwn() {
@@ -396,7 +401,7 @@ public class SimpleMailSender implements ServletContextListener {
 		
 		try {
 			Document doc = Jsoup
-					.connect("http://www.bjhd.gov.cn/xxgk/auto4522_51806/index_bm.shtml")
+					.connect("http://www.bjhd.gov.cn/xxgk/auto4522_51806/zdly/index_bm.shtml")
 					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 					.get();
 			String date = doc.select("td span").get(1).ownText();
@@ -406,7 +411,7 @@ public class SimpleMailSender implements ServletContextListener {
 				String as = a.html();
 				int s= as.indexOf("<a");
 				int e = as.indexOf("</a>")+4;
-				as = as.substring(s, e).replaceAll("\\./", "http://www.bjhd.gov.cn/xxgk/auto4522_51806/");
+				as = as.substring(s, e).replaceAll("\\./", "http://www.bjhd.gov.cn/xxgk/auto4522_51806/zdly/");
 				sb.append("<li>"+as+"</li>");
 			}
 			sb.append("</ul>");
@@ -506,6 +511,7 @@ public class SimpleMailSender implements ServletContextListener {
 		Document myAccountDoc = null;
 		// 打开cookie管理
 		CookieManager manager = new CookieManager();
+		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(manager);
 		try {
 			// 登录页
