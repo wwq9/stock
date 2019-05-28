@@ -18,7 +18,7 @@ public class AppListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-		runQuarter();
+//		runQuarter();
 	}
 
 	private void runQuarter() {

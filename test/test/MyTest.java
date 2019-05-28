@@ -258,17 +258,20 @@ public class MyTest {
 //				.ignoreContentType(true)
 //				.execute().body();
 		
-		Document fengtaiDoc = Jsoup.connect("http://www.bjft.gov.cn/XXGK/BZXZFGS/list.xml")
+		Document fengtaiDoc = Jsoup.connect("http://www.bjhd.gov.cn/xxgk/auto4522_51806/index_bm.shtml")
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
 				.get();
-		String ftdate = fengtaiDoc.selectFirst("pubtime").ownText();
-		Elements titles = fengtaiDoc.select("title");
+		System.out.println(fengtaiDoc.select("td span").get(1).ownText());
+//		String ftdate = fengtaiDoc.selectFirst("pubtime").ownText();
+		Elements titles = fengtaiDoc.select("td[class=mc]");
 		Elements ids = fengtaiDoc.select("id");
 		StringBuilder sb = new StringBuilder("<ul>");
 		for (int i=0;i<titles.size();i++) {
-			String title = titles.get(i).ownText();
-			String id = ids.get(i).ownText();
-			sb.append("<li><a href='http://www.bjft.gov.cn/n_shownews.html?"+id+"?/XXGK/BZXZFGS/'>"+title+"</a></li>");
+			String title = titles.get(i).html();
+			int s= title.indexOf("<a");int e = title.indexOf("</a>");
+			title =title.substring(s, e+4).replaceAll("\\./", "http://www.bjhd.gov.cn/xxgk/auto4522_51806/");
+//			String id = ids.get(i).ownText();
+			sb.append("<li>"+title+"</li>");
 		}
 		sb.append("</ul>");
 		SimpleMailSender.sendHtmlMail("", sb.toString(), "84529527@qq.com");
@@ -278,7 +281,7 @@ public class MyTest {
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
 		CookieManager manager = new CookieManager();
 		CookieHandler.setDefault(manager);
-		String rili = Jsoup.connect("http://gzhd.saic.gov.cn:8281/dwr/call/plaincall/login_Manager.sendMakeCertPic.dwr")
+		String rili = Jsoup.connect("http://gzhd.samr.gov.cn:8601/dwr/call/plaincall/login_Manager.sendMakeCertPic.dwr")
 				.data("c0-scriptName", "login_Manager")
 				.data("c0-methodName","sendMakeCertPic")
 				.data("c0-param0","string:18600369418")
@@ -290,7 +293,7 @@ public class MyTest {
 				.data("windowName","")
 				.data("callCount","1")
 				.post()
-				.html();
+				.ownText();
 		
 //		String rili = Jsoup.connect("https://bch.huaaiangel.com/bchwx/index.php")
 //				.data("phone", "18141911861")
@@ -417,25 +420,28 @@ public class MyTest {
 	 */
 	@Test
 	public void test4() throws Exception{
-		Document doc = Jsoup.connect("http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/")
-				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
-				.get();
-		Element ul = doc.selectFirst("ul.textList");
-		Element span = ul.selectFirst("span");
-		String date = span.html().replaceAll("[\\[ \\]]", "");
-		System.out.println(ul.html());
+//		Document doc = Jsoup.connect("http://www.bjhd.gov.cn/xinxigongkai/zdly/zf/")
+//				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+//				.get();
+//		Element ul = doc.selectFirst("ul.textList");
+//		Element span = ul.selectFirst("span");
+//		String date = span.html().replaceAll("[\\[ \\]]", "");
+//		System.out.println(ul.html());
 		String res = Jsoup.connect("http://zzfws.bjjs.gov.cn/enroll/dyn/enroll/viewEnrollHomePager.json")
 				.requestBody("{\"currPage\":1,\"pageJSMethod\":\"goToPage\",\"active_type\":\"2\"}")
 				.header("Content-Type", "application/json")
 				.header("Cookie", "JSESSIONID=D0FEEA67494F2ADC6CDB491248C845D5; _gscu_1677760547=30758873htcr1i12; Hm_lvt_9ac0f18d7ef56c69aaf41ca783fcb10c=1530760134,1530760280,1531101515,1531113348; session_id=46547e1e-4bf2-456b-acad-d0acd602540d")
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 				.ignoreContentType(true)
+//				.post().body().html();
+//				.ignoreContentType(true)
 				.method(Method.POST)
 				.execute().body();
 		System.out.println(res);
 		JSONObject obj = JSON.parseObject(res);
 		Document document = Jsoup.parse(obj.getString("data"));
 		Elements e = document.select("th:contains(开始时间)").next();
+		System.out.println(e.html());
 	}
 	@Test
 	public void test3() throws Exception{
