@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,22 +57,21 @@ public class SimpleMailSender implements ServletContextListener {
 	static String to1 = "84529527@qq.com";
 	static String to2 = "cj.h@qq.com";
 	static Transport tr = null;
-	static Timer timer = new Timer();
 	static Pattern cn = Pattern.compile("\\d{4}-\\d{2}-\\d{2} (\\d{6}) ");// 匹配年月日后面的code
 	static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
-		timer.cancel();
+		scheduler.shutdown();
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-//		runOwn();
+		runOwn();
 //		runKehu();
-//		runYjyg();
-//		runGycq();
+		runYjyg();
+		runGycq();
 	}
 	
 	private void runKehu() {
@@ -79,7 +79,7 @@ public class SimpleMailSender implements ServletContextListener {
 		c.set(Calendar.HOUR_OF_DAY, 14);
 		c.set(Calendar.MINUTE, 0);
 		
-		TimerTask quarter = new TimerTask() {
+		Runnable quarter = new Runnable() {
 			public void run() {
 				if(10 == Calendar.getInstance().get(Calendar.DAY_OF_MONTH)){
 					try{Thread.sleep(RandomUtils.nextInt(5*60*1000));}catch(Exception e){}
@@ -88,25 +88,51 @@ public class SimpleMailSender implements ServletContextListener {
 			}
 		};
 		
-		timer.scheduleAtFixedRate(quarter, c.getTime(), 24*60*60*1000);
+		scheduler.scheduleAtFixedRate(quarter, 0, 24, TimeUnit.HOURS);
 	}
 	private void runOwn() {
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.HOUR_OF_DAY, 13);
-		c.set(Calendar.MINUTE, 30);
+		List<String[]> userList = new ArrayList();
+		userList.add(new String[]{"18600369418","mdffxwwq9988"});
+//		userList.add(new String[]{"18513650104","w3650104"});
+//		userList.add(new String[]{"18688690526","hcj10120"});
+//		userList.add(new String[]{"13522643008","hcj10120"});
 		
-		TimerTask quarter = new TimerTask() {
-			public void run() {
-				try{Thread.sleep(RandomUtils.nextInt(5*60*1000));}catch(Exception e){}
-				SimpleMailSender.Own();
-			}
-		};
-		timer.scheduleAtFixedRate(quarter, c.getTime(), 24 * 60 * 60 * 1000);
+		Calendar c = Calendar.getInstance();
+		long end = c.getTimeInMillis();
+		c.set(Calendar.HOUR_OF_DAY, 9);
+		c.set(Calendar.MINUTE, 0);
+		long tmp = end-c.getTimeInMillis();
+		if(tmp>0){
+			c.add(Calendar.DAY_OF_MONTH, 1);
+			tmp = c.getTimeInMillis()-end;
+		}else{
+			tmp *= -1;
+		}
+		
+		for(final String[] user:userList){
+			Runnable quarter = new Runnable() {
+				public void run() {
+					try{
+						Thread.sleep(RandomUtils.nextInt(6*60*60*1000));
+					}catch(Exception e){}
+					SimpleMailSender.Own(user);
+				}
+			};
+			scheduler.scheduleAtFixedRate(quarter, tmp, 24, TimeUnit.HOURS);
+		}
 	}
 	private void runYjyg() {
 		Calendar c = Calendar.getInstance();
+		long end = c.getTimeInMillis();
 		c.set(Calendar.HOUR_OF_DAY, 8);
 		c.set(Calendar.MINUTE, 30);
+		long tmp = end-c.getTimeInMillis();
+		if(tmp>0){
+			c.add(Calendar.DAY_OF_MONTH, 1);
+			tmp = c.getTimeInMillis()-end;
+		}else{
+			tmp *= -1;
+		}
 		
 		TimerTask quarter = new TimerTask() {
 			public void run() {
@@ -114,20 +140,28 @@ public class SimpleMailSender implements ServletContextListener {
 				SimpleMailSender.runQuarterYjyg();
 			}
 		};
-		timer.scheduleAtFixedRate(quarter, c.getTime(), 24 * 60 * 60 * 1000);
+		scheduler.scheduleAtFixedRate(quarter, tmp, 24,TimeUnit.HOURS);
 	}
 
 	private void runGycq() {
 		Calendar c = Calendar.getInstance();
+		long end = c.getTimeInMillis();
 		c.set(Calendar.HOUR_OF_DAY, 10);
 		c.set(Calendar.MINUTE, 0);
+		long tmp = end-c.getTimeInMillis();
+		if(tmp>0){
+			c.add(Calendar.DAY_OF_MONTH, 1);
+			tmp = c.getTimeInMillis()-end;
+		}else{
+			tmp *= -1;
+		}
 		TimerTask quarter = new TimerTask() {
 			public void run() {
 				try{Thread.sleep(RandomUtils.nextInt(5*60*1000));}catch(Exception e){}
 				SimpleMailSender.gycq();
 			}
 		};
-		timer.scheduleAtFixedRate(quarter, c.getTime(), 24 * 60 * 60 * 1000);
+		scheduler.scheduleAtFixedRate(quarter, tmp, 24 ,TimeUnit.HOURS);
 	}
 
 	public static void sendHtmlMail(String subject, String tx,String to) {
@@ -451,24 +485,16 @@ public class SimpleMailSender implements ServletContextListener {
 		} catch (Exception e) {}
 		
 	}
-	public static  void Own(){
-		List<String[]> userList = new ArrayList();
-		userList.add(new String[]{"18600369418","Mdffxwwq9988"});
-		userList.add(new String[]{"18513650104","w3650104"});
-		userList.add(new String[]{"18688690526","hcj10120"});
-		userList.add(new String[]{"13522643008","hcj10120"});
-		
+	public static  void Own(String[] user){
 		StringBuffer mailContent = new StringBuffer();
-		for(String[] user:userList){
-			Document myAccountDoc = buyTF(user[0], user[1]);
-			if(myAccountDoc != null){
-				Element commission = myAccountDoc.selectFirst("div:containsOwn(我的佣金)").parent();
-				Element asset = myAccountDoc.selectFirst("div:containsOwn(我的资产)").parent();
-				mailContent.append("<div style='border:1px solid;'>"
-						+ "<h3>"+myAccountDoc.selectFirst("span[fullname]").text()+user[0]+"</h3>");
-				mailContent.append(commission);
-				mailContent.append(asset+"</div><br/>");
-			}
+		Document myAccountDoc = buyTF(user[0], user[1]);
+		if(myAccountDoc != null){
+			Element commission = myAccountDoc.selectFirst("div:containsOwn(我的佣金)").parent();
+			Element asset = myAccountDoc.selectFirst("div:containsOwn(我的资产)").parent();
+			mailContent.append("<div style='border:1px solid;'>"
+					+ "<h3>"+myAccountDoc.selectFirst("span[fullname]").text()+user[0]+"</h3>");
+			mailContent.append(commission);
+			mailContent.append(asset+"</div><br/>");
 		}
 		if(mailContent.length()!=0) sendHtmlMail("我的账户",mailContent.toString(),to2);
 	}
@@ -564,31 +590,31 @@ public class SimpleMailSender implements ServletContextListener {
 				
 				myAccountDoc.body().append("<span fullname>"+user.getString("full_name")+"</span>");
 				
-				int balance = Double.valueOf(
-						myAccountDoc.selectFirst("span:containsOwn(账户余额)")
-								.selectFirst("strong").html()
-								.replaceAll("[, ]", "")).intValue();
-				if (balance >= 100) {
-					// 提交余额购买
-					String buyRes = Jsoup
-							.connect(
-									"https://www.thankfund.com/invest/balanceBuyProducts")
-							.userAgent(
-									"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
-							.referrer(
-									"https://www.thankfund.com/invest/detail/683068a8602c474a8d1746549a211b51")
-							.cookies(extCookie)
-							.data("amount", balance + "00")
-							.data("customer_id", fundUser.getString("user_id"))
-							.data("pay_amount", balance + "00")
-							.data("product_id",
-									"683068a8602c474a8d1746549a211b51")
-							.ignoreContentType(true).method(Method.POST)
-							.execute().body();
-					if (200 != JSON.parseObject(buyRes).getIntValue("status")) {
-						sendHtmlMail("提交余额购买失败"+p1, buyRes,to2);
-					}
-				}
+//				int balance = Double.valueOf(
+//						myAccountDoc.selectFirst("span:containsOwn(账户余额)")
+//								.selectFirst("strong").html()
+//								.replaceAll("[, ]", "")).intValue();
+//				if (balance >= 100) {
+//					// 提交余额购买
+//					String buyRes = Jsoup
+//							.connect(
+//									"https://www.thankfund.com/invest/balanceBuyProducts")
+//							.userAgent(
+//									"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
+//							.referrer(
+//									"https://www.thankfund.com/invest/detail/683068a8602c474a8d1746549a211b51")
+//							.cookies(extCookie)
+//							.data("amount", balance + "00")
+//							.data("customer_id", fundUser.getString("user_id"))
+//							.data("pay_amount", balance + "00")
+//							.data("product_id",
+//									"683068a8602c474a8d1746549a211b51")
+//							.ignoreContentType(true).method(Method.POST)
+//							.execute().body();
+//					if (200 != JSON.parseObject(buyRes).getIntValue("status")) {
+//						sendHtmlMail("提交余额购买失败"+p1, buyRes,to2);
+//					}
+//				}
 
 				String logoutRes = Jsoup
 						.connect("https://www.thankfund.com/logout")
