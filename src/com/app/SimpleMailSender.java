@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -68,10 +67,69 @@ public class SimpleMailSender implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-		runOwn();
+//		runOwn();
 //		runKehu();
+//		runGycq();
 		runYjyg();
-		runGycq();
+		caitOA();
+	}
+	private void caitOA(){
+		Runnable runnable = new Runnable(){
+			public void run(){
+				try{
+					Calendar c = Calendar.getInstance();
+					int hour = c.get(Calendar.HOUR_OF_DAY);
+					c.set(Calendar.HOUR_OF_DAY, 8);
+					c.set(Calendar.MINUTE, 0);
+					
+					if(hour<8){
+						Thread.sleep(c.getTimeInMillis()-System.currentTimeMillis());
+					}
+					if(hour>20){
+						c.add(Calendar.DAY_OF_MONTH, 1);
+						Thread.sleep(c.getTimeInMillis()-System.currentTimeMillis());
+					}
+					Thread.sleep(RandomUtils.nextInt(5*60*1000));
+					//打开cookie管理
+					CookieManager manager = new CookieManager();
+					CookieHandler.setDefault(manager);
+					Document loginPage = Jsoup.connect("http://106.38.71.241:8080/moffice/")
+						.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044207 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
+						.get();
+					
+					Thread.sleep(2000+RandomUtils.nextInt(2*1000));
+					String loginAction = Jsoup.connect("http://106.38.71.241:8080/moffice/mobile/auth_logon.action?is_mobile_request=true")
+							.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044207 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
+							.ignoreContentType(true)
+							.data("logonName", "wangwq")
+							.data("password", "caitwwq9988")
+							.method(Method.POST)
+							.execute().body();
+					
+					Thread.sleep(2000+RandomUtils.nextInt(2*1000));
+					String readyTask = Jsoup.connect("http://106.38.71.241:8080/moffice/mobile/task_queryTask.action?is_mobile_request=true")
+							.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044207 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
+							.ignoreContentType(true)
+							.data("queryStartNum", "0")
+							.data("queryPageSize", "20")
+							.data("queryType","readyTask")
+							.data("queryKeyword","")
+							.method(Method.POST)
+							.execute().body();
+					if(!JSON.parseObject(readyTask).getJSONArray("data").isEmpty()){
+						sendHtmlMail("caitoa",readyTask,to1);
+					}
+					
+					Thread.sleep(2000+RandomUtils.nextInt(2*1000));
+					Document logout = Jsoup.connect("http://106.38.71.241:8080/moffice/logon/logon_logoff.action")
+							.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044207 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
+							.get();
+				}catch(Exception e){
+					sendHtmlMail("caitoa",e.getMessage(),to1);
+				}
+			}
+		};
+		scheduler.scheduleAtFixedRate(runnable, 0, 90, TimeUnit.MINUTES);
 	}
 	
 	private void runKehu() {
@@ -93,9 +151,9 @@ public class SimpleMailSender implements ServletContextListener {
 	private void runOwn() {
 		List<String[]> userList = new ArrayList();
 		userList.add(new String[]{"18600369418","mdffxwwq9988"});
-//		userList.add(new String[]{"18513650104","w3650104"});
+		userList.add(new String[]{"18513650104","zs3650104"});
 //		userList.add(new String[]{"18688690526","hcj10120"});
-//		userList.add(new String[]{"13522643008","hcj10120"});
+		userList.add(new String[]{"13522643008","cj10120"});
 		
 		Calendar c = Calendar.getInstance();
 		long end = c.getTimeInMillis();
@@ -134,7 +192,7 @@ public class SimpleMailSender implements ServletContextListener {
 			tmp *= -1;
 		}
 		
-		TimerTask quarter = new TimerTask() {
+		Runnable quarter = new Runnable() {
 			public void run() {
 				try{Thread.sleep(RandomUtils.nextInt(5*60*1000));}catch(Exception e){}
 				SimpleMailSender.runQuarterYjyg();
