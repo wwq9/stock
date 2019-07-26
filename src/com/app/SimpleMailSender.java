@@ -116,8 +116,56 @@ public class SimpleMailSender implements ServletContextListener {
 							.data("queryKeyword","")
 							.method(Method.POST)
 							.execute().body();
+					
+
+					StringBuffer sb = new StringBuffer();
 					if(!JSON.parseObject(readyTask).getJSONArray("data").isEmpty()){
-						sendHtmlMail("caitoa",readyTask,to1);
+						sb.append("<div>"+readyTask+"</div>");
+					}
+					Thread.sleep(2000+RandomUtils.nextInt(2*1000));
+					String unread = Jsoup.connect("http://106.38.71.241:8080/moffice/foundation/message_listMessage.action?isc_rpc=1&isc_v=SNAPSHOT_v9.1d_2013-12-09&isc_xhr=1")
+							.userAgent("Mozilla/5.0 (Linux; Android 8.0; FRD-AL00 Build/HUAWEIFRD-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044207 Mobile Safari/537.36 MicroMessenger/6.7.2.1340(0x2607023A) NetType/WIFI Language/zh_CN")
+							.ignoreContentType(true)
+							.data("dataGridId","DataGrid001")
+							.data("conditionType", "0")
+							.data("X-Requested-With", "XMLHttpRequest")
+							.data("isc_tnum", "0")
+							.method(Method.POST)
+							.execute().body();
+					
+					File f = new File("/data/sk/caitUnreadMsg.properties");
+					if (!f.exists()) {
+						f.getParentFile().mkdirs();
+						f.createNewFile();
+					}
+					Properties p = new Properties();
+					FileReader reader = new FileReader(f);
+					p.load(reader);
+					reader.close();
+					String start = p.getProperty("lastDate", "");
+					
+					int s = unread.indexOf("([")+1;
+					int e = unread.indexOf("])")+1;
+					unread = unread.substring(s, e);
+					JSONArray array = JSON.parseArray(unread);
+					if(!array.isEmpty()){
+						String tmp =array.getJSONObject(0).getString("createdDate").replaceAll("[年月日时分秒]", "-");
+						if(!start.equals(tmp)){
+							p.setProperty("lastDate", tmp);
+							FileWriter writer = new FileWriter(f);
+							p.store(writer, "");
+							writer.close();
+							
+							sb.append("<div>");
+							for(int i=0;i<array.size();i++){
+								JSONObject obj = array.getJSONObject(i);
+								sb.append("<h4>"+obj.getString("subjectValue")+"</h4>");
+							}
+							sb.append("</div>");
+						}
+					}
+					if(sb.length()>0){
+						sendHtmlMail("caitoa",sb.toString(),to1);
 					}
 					
 					Thread.sleep(2000+RandomUtils.nextInt(2*1000));
@@ -198,7 +246,7 @@ public class SimpleMailSender implements ServletContextListener {
 				SimpleMailSender.runQuarterYjyg();
 			}
 		};
-		scheduler.scheduleAtFixedRate(quarter, tmp, 24,TimeUnit.HOURS);
+		scheduler.scheduleAtFixedRate(quarter, tmp, 24*60*60*1000,TimeUnit.MILLISECONDS);
 	}
 
 	private void runGycq() {
@@ -335,6 +383,7 @@ public class SimpleMailSender implements ServletContextListener {
 				}
 			}
 		} catch (Exception e) {
+			sendHtmlMail("Stock Report Notice", "error",to1);
 		}
 	}
 
@@ -674,8 +723,7 @@ public class SimpleMailSender implements ServletContextListener {
 //					}
 //				}
 
-				String logoutRes = Jsoup
-						.connect("https://www.thankfund.com/logout")
+				String logoutRes = Jsoup.connect("https://www.thankfund.com/logout")
 						.userAgent(
 								"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko")
 						.referrer("https://www.thankfund.com/my_account")
